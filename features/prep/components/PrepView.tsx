@@ -82,20 +82,24 @@ export function PrepView() {
         </p>
       </div>
 
-      <JobSummary />
+      <div className="grid gap-6 md:grid-cols-2">
+        <CameraSection state={cameraState} onRequest={request} />
 
-      <SafetyInstructions />
+        <CountdownSection
+          secondsLeft={secondsLeft}
+          canSkip={canSkip}
+          skipClicked={skipClicked}
+          canProceed={canProceed}
+          onSkip={handleSkip}
+          onProceed={handleProceed}
+        />
+      </div>
 
-      <CameraSection state={cameraState} onRequest={request} />
+      <div className="grid gap-6 md:grid-cols-2">
+        <JobSummary />
 
-      <CountdownSection
-        secondsLeft={secondsLeft}
-        canSkip={canSkip}
-        skipClicked={skipClicked}
-        canProceed={canProceed}
-        onSkip={handleSkip}
-        onProceed={handleProceed}
-      />
+        <SafetyInstructions />
+      </div>
     </section>
   );
 }

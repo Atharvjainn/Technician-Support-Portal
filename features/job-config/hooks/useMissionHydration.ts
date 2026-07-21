@@ -1,21 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, useCallback } from "react";
 import { useMissionStore } from "../store/job-config.store";
 
 export function useMissionHydration() {
-  const [hydrated, setHydrated] = useState(false);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const unsub = useMissionStore.persist.onFinishHydration(() => {
+        onStoreChange();
+      });
 
-  useEffect(() => {
-    setHydrated(useMissionStore.persist.hasHydrated());  
-    //dont render it outside as due to ssr it will be undefined and will cause hydration errors.
+      if (useMissionStore.persist.hasHydrated()) {
+        onStoreChange();
+      }
 
-    const unsub = useMissionStore.persist.onFinishHydration(() => {
-      setHydrated(true);
-    });
+      return unsub;
+    },
+    []
+  );
 
-    return unsub;
-  }, []);
+  const getSnapshot = useCallback(
+    () => useMissionStore.persist.hasHydrated(),
+    []
+  );
 
-  return hydrated;
+  const getServerSnapshot = useCallback(() => false, []);
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
