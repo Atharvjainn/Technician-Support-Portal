@@ -1,9 +1,10 @@
-import React from 'react'
+import { Container } from "@/ui/Container";
+import { AnalysisView } from "@/features/analysis/components/AnalysisView";
 
-const page = () => {
+export default function AnalysisPage() {
   return (
-    <div>page</div>
-  )
+    <Container>
+      <AnalysisView />
+    </Container>
+  );
 }
-
-export default page

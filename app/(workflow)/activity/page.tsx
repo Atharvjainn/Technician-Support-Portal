@@ -1,9 +1,10 @@
-import React from 'react'
+import { Container } from "@/ui/Container";
+import { ActivityView } from "@/features/activity/components/ActivityView";
 
-const page = () => {
+export default function ActivityPage() {
   return (
-    <div>page</div>
-  )
+    <Container>
+      <ActivityView />
+    </Container>
+  );
 }
-
-export default page
