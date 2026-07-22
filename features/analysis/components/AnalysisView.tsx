@@ -1,11 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { CheckCircle2, Clock } from "lucide-react";
 import { useActivityStore } from "@/features/activity/store/activity.store";
 import { useMissionStore } from "@/features/job-config/store/job-config.store";
 import { usePrepStore } from "@/features/prep/store/prep.store";
 import { EQUIPMENT } from "@/features/job-config/constants/equipments";
 import { SEVERITY } from "@/features/job-config/constants/severity";
+import { Card } from "@/ui/Card";
+import { Button } from "@/ui/Button";
 
 export function AnalysisView() {
   const router = useRouter();
@@ -34,9 +37,18 @@ export function AnalysisView() {
 
   return (
     <section className="space-y-10 py-16">
-      <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Analysis</h1>
-        <p className="text-zinc-400">
+      <div className="space-y-3 text-center">
+        <span
+          className={`mx-auto flex size-14 items-center justify-center rounded-full ${
+            timerExpired ? "bg-warning-muted text-warning" : "bg-success-muted text-success"
+          }`}
+        >
+          {timerExpired ? <Clock className="size-7" /> : <CheckCircle2 className="size-7" />}
+        </span>
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Analysis
+        </h1>
+        <p className="text-muted-foreground">
           {timerExpired
             ? "Session ended — timer expired."
             : "Session completed successfully."}
@@ -44,52 +56,51 @@ export function AnalysisView() {
       </div>
 
       <div className="mx-auto max-w-lg space-y-4">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Job Details</h2>
+        <Card className="p-5">
+          <h2 className="font-display mb-3 text-base font-semibold text-foreground">
+            Job Details
+          </h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-zinc-500">Equipment</span>
-              <span className="font-medium">{equipmentTitle}</span>
+              <span className="text-muted-foreground">Equipment</span>
+              <span className="font-medium text-foreground">{equipmentTitle}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">Severity</span>
-              <span className="font-medium">{severityTitle}</span>
+              <span className="text-muted-foreground">Severity</span>
+              <span className="font-medium text-foreground">{severityTitle}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-zinc-500">Status</span>
+              <span className="text-muted-foreground">Status</span>
               <span
-                className={`font-medium ${
-                  timerExpired ? "text-orange-400" : "text-green-400"
-                }`}
+                className={`font-medium ${timerExpired ? "text-warning" : "text-success"}`}
               >
                 {timerExpired ? "Timer Expired" : "Completed"}
               </span>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Progress</h2>
+        <Card className="p-5">
+          <h2 className="font-display mb-3 text-base font-semibold text-foreground">
+            Progress
+          </h2>
           {completedTabs.length > 0 ? (
             <ul className="space-y-2">
               {completedTabs.map((tab) => (
                 <li key={tab} className="flex items-center gap-2 text-sm">
-                  <span className="text-green-400">✓</span>
-                  <span className="text-zinc-300">{tab}</span>
+                  <CheckCircle2 className="size-4 text-success" />
+                  <span className="text-foreground">{tab}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-zinc-500">No phases completed.</p>
+            <p className="text-sm text-muted-foreground">No phases completed.</p>
           )}
-        </div>
+        </Card>
 
-        <button
-          onClick={handleNewMission}
-          className="w-full rounded-lg bg-blue-600 px-5 py-3 font-medium text-white transition hover:bg-blue-700"
-        >
+        <Button onClick={handleNewMission} className="w-full">
           Start New Mission
-        </button>
+        </Button>
       </div>
     </section>
   );

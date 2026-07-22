@@ -1,20 +1,13 @@
 "use client";
 
+import { ClipboardList, Video, CheckSquare, Lock, Check } from "lucide-react";
 import { useActivityStore } from "../store/activity.store";
 
 const TABS = [
-  { id: "assessment" as const, label: "Assessment", icon: "📋" },
-  { id: "recording" as const, label: "Recording", icon: "🎥" },
-  { id: "qa" as const, label: "QA Review", icon: "✅" },
+  { id: "assessment" as const, label: "Assessment", icon: ClipboardList },
+  { id: "recording" as const, label: "Recording", icon: Video },
+  { id: "qa" as const, label: "QA Review", icon: CheckSquare },
 ];
-
-function tabStateLabel(
-  state: "active" | "completed" | "locked"
-): string {
-  if (state === "completed") return "✓";
-  if (state === "locked") return "🔒";
-  return "";
-}
 
 export function TabNavigation() {
   const activeTab = useActivityStore((s) => s.activeTab);
@@ -22,46 +15,48 @@ export function TabNavigation() {
   const setActiveTab = useActivityStore((s) => s.setActiveTab);
 
   const effective = {
-    assessment: tabStates.assessment as "active" | "completed",
+    assessment: tabStates.assessment,
     recording:
       tabStates.assessment === "completed"
         ? tabStates.recording === "locked"
           ? "active"
           : tabStates.recording
-        : ("locked" as const),
+        : "locked",
     qa:
       tabStates.recording === "completed"
         ? tabStates.qa === "locked"
           ? "active"
           : tabStates.qa
-        : ("locked" as const),
-  };
+        : "locked",
+  } as const;
 
   return (
-    <div className="flex gap-2 border-b border-zinc-800 px-4">
+    <div className="flex gap-1 border-b border-border bg-surface px-4">
       {TABS.map((tab) => {
         const state = effective[tab.id];
         const isActive = activeTab === tab.id;
         const isClickable = state !== "locked";
+        const Icon = tab.icon;
 
         return (
           <button
             key={tab.id}
             onClick={() => isClickable && setActiveTab(tab.id)}
             disabled={!isClickable}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition ${
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
               isActive
-                ? "border-blue-500 text-blue-400"
+                ? "border-primary text-primary"
                 : state === "completed"
-                  ? "border-transparent text-green-400"
+                  ? "border-transparent text-success"
                   : state === "locked"
-                    ? "cursor-not-allowed border-transparent text-zinc-600"
-                    : "border-transparent text-zinc-400 hover:text-zinc-200"
+                    ? "cursor-not-allowed border-transparent text-muted-foreground/50"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span>{tab.icon}</span>
+            <Icon className="size-4" />
             <span>{tab.label}</span>
-            <span className="text-xs">{tabStateLabel(state)}</span>
+            {state === "completed" && <Check className="size-3.5" />}
+            {state === "locked" && <Lock className="size-3.5" />}
           </button>
         );
       })}

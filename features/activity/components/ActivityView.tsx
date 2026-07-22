@@ -50,7 +50,7 @@ export function ActivityView() {
   if (!prepCompleted || timerExpired) return null;
 
   return (
-    <section className="flex h-[calc(100vh-4rem)] flex-col">
+    <section className="flex h-[calc(100vh-4rem)] flex-col bg-background">
       <ActivityTimer />
 
       <TabNavigation />

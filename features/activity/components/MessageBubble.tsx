@@ -11,13 +11,13 @@ export function MessageBubble({ role, text }: MessageBubbleProps) {
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
+        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-zinc-800 text-zinc-200"
+            ? "bg-primary text-primary-foreground"
+            : "border border-border bg-surface-muted text-foreground"
         }`}
       >
-        <p className="text-sm leading-relaxed">{text}</p>
+        {text}
       </div>
     </div>
   );

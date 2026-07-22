@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { useActivityStore } from "@/features/activity/store/activity.store";
 import { useAIChat } from "../hooks/useAIChat";
 import { ASSESSMENT_SCRIPT } from "../constants/assessment-chat";
-import { MessageBubble } from "./MessageBubble";
-import { TypingIndicator } from "./TypingIndicator";
+import { MessageBubble } from "@/features/activity/components/MessageBubble";
+import { TypingIndicator } from "@/features/activity/components/TypingIndicator";
+import { Button } from "@/ui/Button";
 
 export function AssessmentTab() {
   const chat = useActivityStore((s) => s.assessmentChat);
@@ -38,6 +39,7 @@ export function AssessmentTab() {
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isTyping) return;
+
     sendMessage(trimmed);
     setInput("");
   };
@@ -58,14 +60,11 @@ export function AssessmentTab() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-zinc-800 p-4">
+      <div className="border-t border-border bg-surface p-4">
         {canComplete ? (
-          <button
-            onClick={complete}
-            className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700"
-          >
+          <Button onClick={complete} className="w-full">
             Complete Assessment
-          </button>
+          </Button>
         ) : (
           <div className="flex gap-2">
             <input
@@ -74,15 +73,15 @@ export function AssessmentTab() {
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder={ASSESSMENT_SCRIPT.userPlaceholder}
               disabled={isTyping}
-              className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 outline-none transition focus:border-blue-500 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition focus:border-primary disabled:opacity-50"
             />
-            <button
+
+            <Button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               Send
-            </button>
+            </Button>
           </div>
         )}
       </div>

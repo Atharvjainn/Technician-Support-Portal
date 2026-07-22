@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useActivityStore } from "@/features/activity/store/activity.store";
 import { useAIChat } from "../../assessment/hooks/useAIChat";
 import { QA_SCRIPT } from "../constants/qa-chat";
-import { MessageBubble } from "../../assessment/components/MessageBubble";
-import { TypingIndicator } from "../../assessment/components/TypingIndicator";
+import { MessageBubble } from "@/features/activity/components/MessageBubble";
+import { TypingIndicator } from "@/features/activity/components/TypingIndicator";
+import { Button } from "@/ui/Button";
 
 export function QATab() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export function QATab() {
   const handleSend = () => {
     const trimmed = input.trim();
     if (!trimmed || isTyping) return;
+
     sendMessage(trimmed);
     setInput("");
   };
@@ -65,14 +67,11 @@ export function QATab() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-zinc-800 p-4">
+      <div className="border-t border-border bg-surface p-4">
         {canComplete ? (
-          <button
-            onClick={handleComplete}
-            className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700"
-          >
+          <Button onClick={handleComplete} className="w-full">
             Complete & Finish
-          </button>
+          </Button>
         ) : (
           <div className="flex gap-2">
             <input
@@ -81,15 +80,15 @@ export function QATab() {
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder={QA_SCRIPT.userPlaceholder}
               disabled={isTyping}
-              className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 outline-none transition focus:border-blue-500 disabled:opacity-50"
+              className="flex-1 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder-muted-foreground outline-none transition focus:border-primary disabled:opacity-50"
             />
-            <button
+
+            <Button
               onClick={handleSend}
               disabled={!input.trim() || isTyping}
-              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
             >
               Send
-            </button>
+            </Button>
           </div>
         )}
       </div>
