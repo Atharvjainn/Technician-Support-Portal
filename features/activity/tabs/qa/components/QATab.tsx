@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useActivityStore } from "@/features/activity/store/activity.store";
-import { useMockChat } from "../../assessment/hooks/useMockChat";
+import { useAIChat } from "../../assessment/hooks/useAIChat";
 import { QA_SCRIPT } from "../constants/qa-chat";
 import { MessageBubble } from "../../assessment/components/MessageBubble";
 import { TypingIndicator } from "../../assessment/components/TypingIndicator";
@@ -14,15 +14,28 @@ export function QATab() {
   const addMessage = useActivityStore((s) => s.addQAMessage);
   const completeQA = useActivityStore((s) => s.completeQA);
 
-  const { messages, isTyping, canComplete, sendMessage, complete } =
-    useMockChat(chat, addMessage, completeQA, QA_SCRIPT, "qaChat");
+  const {
+    messages,
+    isTyping,
+    streamingMessage,
+    canComplete,
+    sendMessage,
+    complete,
+  } = useAIChat(
+    chat,
+    addMessage,
+    completeQA,
+    QA_SCRIPT,
+    "qaChat",
+    "qa"
+  );
 
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, streamingMessage]);
 
   const handleSend = () => {
     const trimmed = input.trim();
@@ -43,7 +56,11 @@ export function QATab() {
           <MessageBubble key={i} role={msg.role} text={msg.text} />
         ))}
 
-        {isTyping && <TypingIndicator />}
+        {isTyping && streamingMessage && (
+          <MessageBubble role="expert" text={streamingMessage} />
+        )}
+
+        {isTyping && !streamingMessage && <TypingIndicator />}
 
         <div ref={bottomRef} />
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useActivityStore } from "@/features/activity/store/activity.store";
-import { useMockChat } from "../hooks/useMockChat";
+import { useAIChat } from "../hooks/useAIChat";
 import { ASSESSMENT_SCRIPT } from "../constants/assessment-chat";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
@@ -12,15 +12,28 @@ export function AssessmentTab() {
   const addMessage = useActivityStore((s) => s.addAssessmentMessage);
   const completeAssessment = useActivityStore((s) => s.completeAssessment);
 
-  const { messages, isTyping, canComplete, sendMessage, complete } =
-    useMockChat(chat, addMessage, completeAssessment, ASSESSMENT_SCRIPT, "assessmentChat");
+  const {
+    messages,
+    isTyping,
+    streamingMessage,
+    canComplete,
+    sendMessage,
+    complete,
+  } = useAIChat(
+    chat,
+    addMessage,
+    completeAssessment,
+    ASSESSMENT_SCRIPT,
+    "assessmentChat",
+    "assessment"
+  );
 
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, streamingMessage]);
 
   const handleSend = () => {
     const trimmed = input.trim();
@@ -36,7 +49,11 @@ export function AssessmentTab() {
           <MessageBubble key={i} role={msg.role} text={msg.text} />
         ))}
 
-        {isTyping && <TypingIndicator />}
+        {isTyping && streamingMessage && (
+          <MessageBubble role="expert" text={streamingMessage} />
+        )}
+
+        {isTyping && !streamingMessage && <TypingIndicator />}
 
         <div ref={bottomRef} />
       </div>
