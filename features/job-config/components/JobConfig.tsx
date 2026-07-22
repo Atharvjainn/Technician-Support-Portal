@@ -24,7 +24,7 @@ export function JobConfig() {
   };
 
   return (
-    <section className="space-y-12 py-12">
+    <section className="space-y-14 py-16">
       <PageHeading
         title="Configure Your Mission"
         description="Select the equipment type and severity level before starting the support workflow."

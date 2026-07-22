@@ -2,44 +2,23 @@ import Link from "next/link";
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-zinc-800 bg-gray-900/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        {/* Logo */}
-        <div className="flex items-center gap-10">
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-white"
-          >
-            Remote Support Portal
-          </Link>
-          
-        </div>
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <Link
+          href="/"
+          className="font-display text-base font-semibold tracking-tight text-foreground"
+        >
+          Remote Support Portal
+        </Link>
 
-        {/* Session Status */}
-        <div className="flex items-center gap-10">
-          <nav className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
-            >
-              Home
-            </Link>
-
-            <Link
-              href="/jobs"
-              className="text-sm font-medium text-zinc-400 transition-colors hover:text-white"
-            >
-              Jobs
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-2 rounded-full bg-zinc-800 px-3 py-1">
-          <div className="h-2 w-2 rounded-full bg-emerald-500" />
-
-          <span className="text-sm text-zinc-400">
-            Technician Session
+        <div className="flex items-center gap-2 rounded-full border border-border bg-surface-muted px-3 py-1.5">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-success" />
           </span>
-          </div>
+          <span className="text-xs font-medium text-muted-foreground">
+            Technician Session Active
+          </span>
         </div>
       </div>
     </header>

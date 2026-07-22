@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/ui/Button";
 
 interface StartMissionButtonProps {
@@ -11,11 +12,9 @@ export function StartMissionButton({
 }: StartMissionButtonProps) {
   return (
     <div className="flex justify-end">
-      <Button
-        disabled={disabled}
-        onClick={onClick}
-      >
+      <Button disabled={disabled} onClick={onClick}>
         Start Mission
+        <ArrowRight className="size-4" />
       </Button>
     </div>
   );

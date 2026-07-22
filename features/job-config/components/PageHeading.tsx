@@ -3,19 +3,13 @@ interface PageHeadingProps {
   description: string;
 }
 
-export function PageHeading({
-  title,
-  description,
-}: PageHeadingProps) {
+export function PageHeading({ title, description }: PageHeadingProps) {
   return (
-    <div className="space-y-2 text-center">
-      <h1 className="text-4xl font-bold tracking-tight">
+    <div className="space-y-3 text-center">
+      <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         {title}
       </h1>
-
-      <p className="text-zinc-400">
-        {description}
-      </p>
+      <p className="mx-auto max-w-md text-muted-foreground">{description}</p>
     </div>
   );
 }

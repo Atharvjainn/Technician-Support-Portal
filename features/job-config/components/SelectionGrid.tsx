@@ -1,13 +1,11 @@
 import { ConfigOption } from "../types/job-config.types";
 import { SelectionCard } from "./SelectionCard";
+import { Section } from "@/ui/Section";
 
 interface SelectionGridProps {
   title: string;
-
   options: ConfigOption[];
-
   selectedId: string;
-
   onSelect: (id: string) => void;
 }
 
@@ -18,12 +16,8 @@ export function SelectionGrid({
   onSelect,
 }: SelectionGridProps) {
   return (
-    <section className="space-y-5">
-      <h2 className="text-xl font-semibold">
-        {title}
-      </h2>
-
-      <div className="grid gap-5 md:grid-cols-3">
+    <Section title={title}>
+      <div className="grid gap-4 md:grid-cols-3">
         {options.map((option) => (
           <SelectionCard
             key={option.id}
@@ -34,6 +28,6 @@ export function SelectionGrid({
           />
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

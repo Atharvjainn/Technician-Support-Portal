@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { Card } from "@/ui/Card";
 import { cn } from "@/lib/utils";
 
@@ -18,19 +19,21 @@ export function SelectionCard({
     <Card
       onClick={onClick}
       className={cn(
-        "cursor-pointer transition-all hover:border-blue-500",
-        selected
-          ? "border-blue-500 bg-blue-500/10"
-          : "border-zinc-100"
+        "relative",
+        selected && "border-primary ring-1 ring-primary"
       )}
     >
-      <h3 className="font-semibold">
+      {selected && (
+        <span className="absolute right-4 top-4 flex size-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Check className="size-3" strokeWidth={3} />
+        </span>
+      )}
+
+      <h3 className="font-display pr-6 font-semibold text-foreground">
         {title}
       </h3>
 
-      <p className="mt-2 text-sm text-zinc-400">
-        {description}
-      </p>
+      <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
     </Card>
   );
 }

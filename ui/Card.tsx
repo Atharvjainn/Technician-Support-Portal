@@ -9,16 +9,13 @@ interface CardProps {
   onClick?: () => void;
 }
 
-export function Card({
-  children,
-  className,
-  onClick,
-}: CardProps) {
+export function Card({ children, className, onClick }: CardProps) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "rounded-2xl border border-zinc-800 bg-zinc-300 p-6 transition-all duration-300",
+        "rounded-xl border border-border bg-card p-6 transition-all duration-200",
+        onClick && "cursor-pointer hover:border-foreground/20 hover:shadow-sm",
         className
       )}
     >
