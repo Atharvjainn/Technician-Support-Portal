@@ -74,10 +74,12 @@ export function PrepView() {
   if (shouldHidePage) return null;
 
   return (
-    <section className="space-y-10 py-12">
+    <section className="space-y-10 py-16">
       <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Preparation</h1>
-        <p className="text-zinc-400">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Preparation
+        </h1>
+        <p className="text-muted-foreground">
           Review the job details and prepare your workspace.
         </p>
       </div>

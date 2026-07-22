@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 type CameraState = "pending" | "granted" | "denied" | "blocked";
 
@@ -44,6 +44,10 @@ export function useCameraPermission(): UseCameraPermissionReturn {
         setState("blocked");
       }
     }
+  }, [revoke]);
+
+  useEffect(() => {
+    return () => revoke();
   }, [revoke]);
 
   return { state, request, revoke };

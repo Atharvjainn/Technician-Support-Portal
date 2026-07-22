@@ -1,5 +1,8 @@
 "use client";
 
+import { Card } from "@/ui/Card";
+import { Button } from "@/ui/Button";
+
 interface CountdownSectionProps {
   secondsLeft: number;
   canSkip: boolean;
@@ -9,6 +12,10 @@ interface CountdownSectionProps {
   onProceed: () => void;
 }
 
+const TOTAL = 30;
+const RADIUS = 42;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
 export function CountdownSection({
   secondsLeft,
   canSkip,
@@ -17,53 +24,62 @@ export function CountdownSection({
   onSkip,
   onProceed,
 }: CountdownSectionProps) {
-  const progress = ((30 - secondsLeft) / 30) * 100;
+  const progress = (TOTAL - secondsLeft) / TOTAL;
+  const offset = CIRCUMFERENCE * (1 - progress);
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-semibold">Starting in {secondsLeft}s</h2>
+    <div className="space-y-3">
+      <h2 className="font-display text-lg font-semibold text-foreground">
+        Preparing Workspace
+      </h2>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-        <div
-          className="h-full rounded-full bg-blue-600 transition-all duration-1000 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      <Card className="flex flex-col items-center gap-6 p-6">
+        <div className="relative flex size-28 items-center justify-center">
+          <svg viewBox="0 0 96 96" className="size-28 -rotate-90">
+            <circle
+              cx="48"
+              cy="48"
+              r={RADIUS}
+              fill="none"
+              stroke="var(--color-surface-muted)"
+              strokeWidth="7"
+            />
+            <circle
+              cx="48"
+              cy="48"
+              r={RADIUS}
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeWidth="7"
+              strokeLinecap="round"
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={offset}
+              className="transition-[stroke-dashoffset] duration-1000 ease-linear"
+            />
+          </svg>
+          <span className="absolute font-mono text-2xl font-semibold tabular-nums text-foreground">
+            {String(secondsLeft).padStart(2, "0")}
+          </span>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-3xl font-bold tabular-nums text-zinc-100">
-          {String(secondsLeft).padStart(2, "0")}
-          <span className="text-lg font-normal text-zinc-500">s</span>
-        </p>
-
-        <div className="flex gap-3">
+        <div className="flex w-full gap-3">
           {canSkip && (
-            <button
-              onClick={onSkip}
-              className="rounded-lg border border-zinc-700 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-800"
-            >
+            <Button variant="secondary" onClick={onSkip} className="flex-1">
               Skip
-            </button>
+            </Button>
           )}
 
           {skipClicked && (
-            <button
-              disabled
-              className="rounded-lg border border-zinc-800 px-5 py-2.5 text-sm font-medium text-zinc-600"
-            >
+            <Button variant="secondary" disabled className="flex-1">
               Skipped
-            </button>
+            </Button>
           )}
 
-          <button
-            onClick={onProceed}
-            disabled={!canProceed}
-            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button onClick={onProceed} disabled={!canProceed} className="flex-1">
             Proceed
-          </button>
+          </Button>
         </div>
-      </div>
-    </section>
+      </Card>
+    </div>
   );
 }
