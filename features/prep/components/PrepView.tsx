@@ -6,7 +6,7 @@ import { useMissionStore } from "@/features/job-config/store/job-config.store";
 import { useMissionHydration } from "@/features/job-config/hooks/useMissionHydration";
 import { usePrepStore } from "../store/prep.store";
 import { useCameraPermission } from "../hooks/useCameraPermission";
-import { useCountdown } from "../hooks/useCountdown";
+import { useTimer } from "@/lib/hooks/useTimer";
 import { JobSummary } from "./JobSummary";
 import { SafetyInstructions } from "./SafetyInstructions";
 import { CameraSection } from "./CameraSection";
@@ -20,11 +20,32 @@ export function PrepView() {
   const severity = useMissionStore((s) => s.severity);
   const prepCompleted = usePrepStore((s) => s.completed);
   const setPrepCompleted = usePrepStore((s) => s.setCompleted);
+  const countdownStartedAt = usePrepStore((s) => s.countdownStartedAt);
+  const startCountdown = usePrepStore((s) => s.startCountdown);
 
   const { state: cameraState, request } = useCameraPermission();
-  const { secondsLeft, isFinished, stop } = useCountdown(30);
-  const hydrated = useMissionHydration();
+
+  const missionHydrated = useMissionHydration();
+
+  // usePrepStore is also persisted, so it needs the same
+  // hydration wait — otherwise countdownStartedAt reads as `null`
+  // (its pre-hydration default) for one render, and the countdown
+  // would look like it's restarting even though a real value is
+  // about to load from localStorage.
+  const [prepStoreHydrated, setPrepStoreHydrated] = useState(false);
+
+  useEffect(() => {
+    const check = () => setPrepStoreHydrated(usePrepStore.persist.hasHydrated());
+    check();
+    const unsub = usePrepStore.persist.onFinishHydration(check);
+    return unsub;
+  }, []);
+
+  const hydrated = missionHydrated && prepStoreHydrated;
+
   const [skipClicked, setSkipClicked] = useState(false);
+
+  const { secondsLeft, isFinished } = useTimer(30, countdownStartedAt);
 
   const shouldHidePage =
     !hydrated || !equipment || !severity || prepCompleted;
@@ -33,28 +54,38 @@ export function PrepView() {
     if (!hydrated) return;
 
     if (!equipment || !severity) {
-    router.replace("/");
+      router.replace("/");
     }
-
-  }, [hydrated,equipment, severity, router]);
+  }, [hydrated, equipment, severity, router]);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (prepCompleted) {
       router.replace("/activity");
     }
-  }, [prepCompleted, router]);
+  }, [hydrated, prepCompleted, router]);
+
+  // Start the countdown clock exactly once, only after hydration
+  // has confirmed there isn't already a persisted start time to
+  // resume from.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (countdownStartedAt === null) {
+      startCountdown();
+    }
+  }, [hydrated, countdownStartedAt, startCountdown]);
 
   const canSkip = secondsLeft <= 25 && !skipClicked && !isFinished;
   const canProceed =
     cameraState === "granted" && (isFinished || skipClicked);
 
   const navigateToActivity = useCallback(() => {
-  if (navigatingRef.current) return;
+    if (navigatingRef.current) return;
 
-  navigatingRef.current = true;
-  setPrepCompleted(true);
-  router.push("/activity");
-}, [router, setPrepCompleted]);
+    navigatingRef.current = true;
+    setPrepCompleted(true);
+    router.push("/activity");
+  }, [router, setPrepCompleted]);
 
   useEffect(() => {
     if (isFinished && cameraState === "granted") {
@@ -63,7 +94,6 @@ export function PrepView() {
   }, [isFinished, cameraState, navigateToActivity]);
 
   const handleSkip = () => {
-    stop();
     setSkipClicked(true);
   };
 

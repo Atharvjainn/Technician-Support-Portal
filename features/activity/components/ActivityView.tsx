@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrepStore } from "@/features/prep/store/prep.store";
+import { useHydration } from "@/lib/hooks/useHydration";
 import { useActivityStore } from "../store/activity.store";
 import { ActivityTimer } from "./ActivityTimer";
 import { TabNavigation } from "./TabNavigation";
@@ -12,6 +13,11 @@ import { QATab } from "../tabs/qa/components/QATab";
 
 export function ActivityView() {
   const router = useRouter();
+
+  const activityHydrated = useHydration(useActivityStore.persist);
+  const prepHydrated = useHydration(usePrepStore.persist);
+  const hydrated = activityHydrated && prepHydrated;
+
   const prepCompleted = usePrepStore((s) => s.completed);
   const activeTab = useActivityStore((s) => s.activeTab);
   const timerStartedAt = useActivityStore((s) => s.timerStartedAt);
@@ -19,17 +25,23 @@ export function ActivityView() {
   const startTimer = useActivityStore((s) => s.startTimer);
   const tabStates = useActivityStore((s) => s.tabStates);
 
+  // Don't touch the store, and don't redirect, until persisted state
+  // has actually loaded from localStorage — otherwise every refresh
+  // sees the pre-hydration defaults (prepCompleted: false,
+  // timerStartedAt: null) for one render.
   useEffect(() => {
+    if (!hydrated) return;
     if (!prepCompleted) {
       router.replace("/prep");
     }
-  }, [prepCompleted, router]);
+  }, [hydrated, prepCompleted, router]);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (!timerStartedAt && !timerExpired) {
       startTimer();
     }
-  }, [timerStartedAt, timerExpired, startTimer]);
+  }, [hydrated, timerStartedAt, timerExpired, startTimer]);
 
   useEffect(() => {
     if (timerExpired) {
@@ -38,6 +50,7 @@ export function ActivityView() {
   }, [timerExpired, router]);
 
   useEffect(() => {
+    if (!hydrated) return;
     const isLocked =
       (activeTab === "recording" && tabStates.recording === "locked") ||
       (activeTab === "qa" && tabStates.qa === "locked");
@@ -45,9 +58,9 @@ export function ActivityView() {
     if (isLocked) {
       router.replace("/prep");
     }
-  }, [activeTab, tabStates, router]);
+  }, [hydrated, activeTab, tabStates, router]);
 
-  if (!prepCompleted || timerExpired) return null;
+  if (!hydrated || !prepCompleted || timerExpired) return null;
 
   return (
     <section className="flex h-[calc(100vh-4rem)] flex-col bg-background">

@@ -2,6 +2,7 @@
 
 import { Card } from "@/ui/Card";
 import { Button } from "@/ui/Button";
+import { RadialTimer } from "@/ui/RadialTimer";
 
 interface CountdownSectionProps {
   secondsLeft: number;
@@ -13,8 +14,6 @@ interface CountdownSectionProps {
 }
 
 const TOTAL = 30;
-const RADIUS = 42;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function CountdownSection({
   secondsLeft,
@@ -25,7 +24,6 @@ export function CountdownSection({
   onProceed,
 }: CountdownSectionProps) {
   const progress = (TOTAL - secondsLeft) / TOTAL;
-  const offset = CIRCUMFERENCE * (1 - progress);
 
   return (
     <div className="space-y-3">
@@ -34,33 +32,16 @@ export function CountdownSection({
       </h2>
 
       <Card className="flex flex-col items-center gap-6 p-6">
-        <div className="relative flex size-28 items-center justify-center">
-          <svg viewBox="0 0 96 96" className="size-28 -rotate-90">
-            <circle
-              cx="48"
-              cy="48"
-              r={RADIUS}
-              fill="none"
-              stroke="var(--color-surface-muted)"
-              strokeWidth="7"
-            />
-            <circle
-              cx="48"
-              cy="48"
-              r={RADIUS}
-              fill="none"
-              stroke="var(--color-primary)"
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={offset}
-              className="transition-[stroke-dashoffset] duration-1000 ease-linear"
-            />
-          </svg>
-          <span className="absolute font-mono text-2xl font-semibold tabular-nums text-foreground">
+        <RadialTimer
+          size={112}
+          strokeWidth={7}
+          progress={progress}
+          color="var(--color-primary)"
+        >
+          <span className="font-mono text-2xl font-semibold tabular-nums text-foreground">
             {String(secondsLeft).padStart(2, "0")}
           </span>
-        </div>
+        </RadialTimer>
 
         <div className="flex w-full gap-3">
           {canSkip && (
