@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { ChatMessage } from "@/features/activity/store/activity.store";
 import { useMissionStore } from "@/features/job-config/store/job-config.store";
+import { speak, stopSpeaking } from "@/lib/utils";
 
 interface ChatScript {
   expertMessages: ReadonlyArray<{ text: string; delayMs: number }>;
@@ -35,9 +36,13 @@ export function useAIChat(
   const severity = useMissionStore((s) => s.severity);
 
   const mockIndexRef = useRef(0);
+
   const sendMessage = useCallback(
     async (text: string) => {
       if (isTyping) return;
+
+      // Stop any speech that's currently playing
+      stopSpeaking();
 
       const apiMessages = [
         ...chat.messages,
@@ -63,33 +68,61 @@ export function useAIChat(
 
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
+
         let accumulated = "";
 
         while (true) {
           const { done, value } = await reader.read();
+
           if (done) break;
-          accumulated += decoder.decode(value, { stream: true });
+
+          accumulated += decoder.decode(value, {
+            stream: true,
+          });
+
           setStreamingMessage(accumulated);
         }
 
         if (accumulated) {
-          addMessage({ role: "expert", text: accumulated });
+          addMessage({
+            role: "expert",
+            text: accumulated,
+          });
+
+          // Speak the completed AI response
+          speak(accumulated);
         }
       } catch {
         const fallbackMsg = script.expertMessages[mockIndexRef.current];
+
         if (fallbackMsg) {
-          mockIndexRef.current += 1;
+          mockIndexRef.current++;
+
           await new Promise((resolve) =>
             setTimeout(resolve, fallbackMsg.delayMs)
           );
-          addMessage({ role: "expert", text: fallbackMsg.text });
+
+          addMessage({
+            role: "expert",
+            text: fallbackMsg.text,
+          });
+
+          speak(fallbackMsg.text);
         }
       }
 
       setIsTyping(false);
       setStreamingMessage("");
     },
-    [chat.messages, isTyping, addMessage, script, equipment, severity, phase]
+    [
+      chat.messages,
+      isTyping,
+      addMessage,
+      script,
+      equipment,
+      severity,
+      phase,
+    ]
   );
 
   const canComplete = chat.nextExpertIndex >= MIN_EXCHANGES;
@@ -98,10 +131,12 @@ export function useAIChat(
     if (chat.messages.length > 0 || chat.nextExpertIndex > 0) return;
 
     const stored = localStorage.getItem("activity-state");
+
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         const chatData = parsed?.state?.[storageKey];
+
         if (chatData?.messages?.length > 0) return;
       } catch {}
     }
@@ -126,27 +161,46 @@ export function useAIChat(
 
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
+
         let accumulated = "";
 
         while (true) {
           const { done, value } = await reader.read();
+
           if (done) break;
+
           if (!mounted) return;
-          accumulated += decoder.decode(value, { stream: true });
+
+          accumulated += decoder.decode(value, {
+            stream: true,
+          });
+
           setStreamingMessage(accumulated);
         }
 
         if (mounted && accumulated) {
-          addMessage({ role: "expert", text: accumulated });
+          addMessage({
+            role: "expert",
+            text: accumulated,
+          });
+
+          speak(accumulated);
         }
       } catch {
         if (!mounted) return;
+
         const firstMsg = script.expertMessages[0];
+
         if (firstMsg) {
           setTimeout(() => {
-            if (mounted) {
-              addMessage({ role: "expert", text: firstMsg.text });
-            }
+            if (!mounted) return;
+
+            addMessage({
+              role: "expert",
+              text: firstMsg.text,
+            });
+
+            speak(firstMsg.text);
           }, firstMsg.delayMs);
         }
       }
@@ -161,8 +215,19 @@ export function useAIChat(
 
     return () => {
       mounted = false;
+
+      stopSpeaking();
     };
-  }, [chat.messages, chat.nextExpertIndex, addMessage, script, equipment, severity, phase, storageKey]);
+  }, [
+    chat.messages,
+    chat.nextExpertIndex,
+    addMessage,
+    script,
+    equipment,
+    severity,
+    phase,
+    storageKey,
+  ]);
 
   return {
     messages: chat.messages,

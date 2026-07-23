@@ -46,14 +46,6 @@ export function ActivityView() {
   const startTimer = useActivityStore((s) => s.startTimer);
   const tabStates = useActivityStore((s) => s.tabStates);
 
-  // Same reasoning as PrepView: the proxy only checked cookies on the
-  // way in. If job config or prep state gets wiped while this page is
-  // already mounted (or the cookie is stale relative to localStorage),
-  // nothing server-side catches it — this has to. And it's not just a
-  // redirect: any activity session tied to a now-missing prerequisite
-  // is invalid, so its stale timerStartedAt gets cleared too. Otherwise
-  // a later, legitimate return to /activity would resume a timer that
-  // started during the abandoned session instead of a fresh one.
   useEffect(() => {
     if (!hydrated) return;
     if (!equipment || !severity) {
