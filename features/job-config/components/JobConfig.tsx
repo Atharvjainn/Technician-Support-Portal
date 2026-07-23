@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 import { PageHeading } from "./PageHeading";
 import { SelectionGrid } from "./SelectionGrid";
@@ -9,6 +10,7 @@ import { StartMissionButton } from "./StartMissionButton";
 import { EQUIPMENT } from "../constants/equipments";
 import { SEVERITY } from "../constants/severity";
 import { useMissionStore } from "../store/job-config.store";
+import { confirmJobConfigured } from "../actions/confirm-job-config";
 
 export function JobConfig() {
   const router = useRouter();
@@ -17,10 +19,24 @@ export function JobConfig() {
   const setEquipment = useMissionStore((s) => s.setEquipment);
   const setSeverity = useMissionStore((s) => s.setSeverity);
 
-  const canStart = equipment !== "" && severity !== "";
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const canStart = equipment !== "" && severity !== "" && !isPending;
 
   const handleStartMission = () => {
-    router.push("/prep");
+    setError(null);
+    
+    startTransition(async () => {
+      const result = await confirmJobConfigured(equipment, severity);
+
+      if (!result.success) {
+        setError(result.error ?? "Could not start mission. Please try again.");
+        return;
+      }
+
+      router.push("/prep");
+    });
   };
 
   return (
@@ -44,9 +60,16 @@ export function JobConfig() {
         onSelect={setSeverity}
       />
 
+      {error && (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      )}
+
       <StartMissionButton
         disabled={!canStart}
         onClick={handleStartMission}
+        pending={isPending}
       />
     </section>
   );

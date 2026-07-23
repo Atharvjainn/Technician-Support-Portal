@@ -37,13 +37,3 @@ export const usePrepStore = create<PrepStore>()(
   )
 );
 
-const PREP_COOKIE = "prep_completed";
-
-function syncPrepCookie(completed: boolean) {
-  if (typeof document === "undefined") return;
-  document.cookie = completed
-    ? `${PREP_COOKIE}=1; path=/; max-age=${60 * 60 * 24}; samesite=lax`
-    : `${PREP_COOKIE}=; path=/; max-age=0; samesite=lax`;
-}
-
-usePrepStore.subscribe((state) => syncPrepCookie(state.completed));

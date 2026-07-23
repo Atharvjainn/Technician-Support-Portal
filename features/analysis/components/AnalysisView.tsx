@@ -9,6 +9,8 @@ import { EQUIPMENT } from "@/features/job-config/constants/equipments";
 import { SEVERITY } from "@/features/job-config/constants/severity";
 import { Card } from "@/ui/Card";
 import { Button } from "@/ui/Button";
+import { clearJobConfigured } from "@/features/job-config/actions/confirm-job-config";
+import { clearPrepCompleted } from "@/features/prep/actions/confirm-prep";
 
 export function AnalysisView() {
   const router = useRouter();
@@ -18,11 +20,19 @@ export function AnalysisView() {
   const severityId = useMissionStore((s) => s.severity);
 
   const handleNewMission = () => {
-    useMissionStore.getState().reset();
-    usePrepStore.getState().reset();
-    useActivityStore.getState().reset();
+  useMissionStore.getState().reset();
+  usePrepStore.getState().reset();
+  useActivityStore.getState().reset();
+
+  // The Zustand resets above only clear localStorage. The httpOnly
+  // guard cookies (job_configured, prep_completed) can't be touched
+  // by client JS at all — that's the point of httpOnly — so they
+  // have to be cleared through the same Server Action boundary that
+  // set them, or they'd outlive a "finished" mission for up to 24h.
+  Promise.all([clearJobConfigured(), clearPrepCompleted()]).finally(() => {
     router.push("/");
-  };
+  });
+};
 
   const equipmentTitle =
     EQUIPMENT.find((e) => e.id === equipmentId)?.title ?? equipmentId;

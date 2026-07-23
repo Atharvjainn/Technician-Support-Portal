@@ -11,6 +11,7 @@ import { SafetyInstructions } from "./SafetyInstructions";
 import { CameraSection } from "./CameraSection";
 import { CountdownSection } from "./CountdownSection";
 import { useMissionStore } from "@/features/job-config/store/job-config.store";
+import { confirmPrepCompleted } from "../actions/confirm-prep";
 
 export function PrepView() {
   const router = useRouter();
@@ -80,13 +81,25 @@ export function PrepView() {
   const canProceed =
     cameraState === "granted" && (isFinished || skipClicked);
 
-  const navigateToActivity = useCallback(() => {
-    if (navigatingRef.current) return;
+ const [navError, setNavError] = useState<string | null>(null);
 
-    navigatingRef.current = true;
+const navigateToActivity = useCallback(() => {
+  if (navigatingRef.current) return;
+
+  navigatingRef.current = true;
+  setNavError(null);
+
+  confirmPrepCompleted().then((result) => {
+    if (!result.success) {
+      navigatingRef.current = false;
+      setNavError(result.error ?? "Could not proceed. Please try again.");
+      return;
+    }
+
     setPrepCompleted(true);
     router.push("/activity");
-  }, [router, setPrepCompleted]);
+  });
+}, [router, setPrepCompleted]);
 
   useEffect(() => {
     if (isFinished && cameraState === "granted") {
@@ -114,6 +127,12 @@ export function PrepView() {
           Review the job details and prepare your workspace.
         </p>
       </div>
+
+      {navError && (
+  <p className="text-center text-sm text-destructive" role="alert">
+    {navError}
+  </p>
+  )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <CameraSection state={cameraState} onRequest={request} />
