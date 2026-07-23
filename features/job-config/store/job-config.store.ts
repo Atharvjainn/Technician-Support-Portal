@@ -41,3 +41,23 @@ export const useMissionStore = create<MissionStore>()(
     }
   )
 );
+
+// ...(existing store definition unchanged)...
+
+// Same reasoning as prep.store.ts: middleware can't see localStorage, so
+// mirror the one thing the /prep route guard cares about — "has a job been
+// configured yet" — into a cookie. One subscribe here, nothing else needs
+// to know a cookie is involved.
+const JOB_CONFIGURED_COOKIE = "job_configured";
+
+function syncJobConfiguredCookie(equipment: string, severity: string) {
+  if (typeof document === "undefined") return;
+  const configured = Boolean(equipment) && Boolean(severity);
+  document.cookie = configured
+    ? `${JOB_CONFIGURED_COOKIE}=1; path=/; max-age=${60 * 60 * 24}; samesite=lax`
+    : `${JOB_CONFIGURED_COOKIE}=; path=/; max-age=0; samesite=lax`;
+}
+
+useMissionStore.subscribe((state) =>
+  syncJobConfiguredCookie(state.equipment, state.severity)
+);

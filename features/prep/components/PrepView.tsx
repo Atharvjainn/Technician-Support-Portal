@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useMissionStore } from "@/features/job-config/store/job-config.store";
 import { useMissionHydration } from "@/features/job-config/hooks/useMissionHydration";
 import { usePrepStore } from "../store/prep.store";
 import { useCameraPermission } from "../hooks/useCameraPermission";
@@ -16,8 +15,6 @@ export function PrepView() {
   const router = useRouter();
   const navigatingRef = useRef(false);
 
-  const equipment = useMissionStore((s) => s.equipment);
-  const severity = useMissionStore((s) => s.severity);
   const prepCompleted = usePrepStore((s) => s.completed);
   const setPrepCompleted = usePrepStore((s) => s.setCompleted);
   const countdownStartedAt = usePrepStore((s) => s.countdownStartedAt);
@@ -47,16 +44,14 @@ export function PrepView() {
 
   const { secondsLeft, isFinished } = useTimer(30, countdownStartedAt);
 
-  const shouldHidePage =
-    !hydrated || !equipment || !severity || prepCompleted;
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    if (!equipment || !severity) {
-      router.replace("/");
-    }
-  }, [hydrated, equipment, severity, router]);
+  // No "!equipment || !severity -> redirect" check here anymore.
+  // middleware.ts blocks any request to /prep before it's ever rendered
+  // if a job hasn't been configured yet, so this component can assume
+  // Phase 1 was already completed by the time it mounts. The
+  // prepCompleted redirect below is a separate, non-security "you're
+  // already done, move along" convenience — kept client-side since it's
+  // just forward flow, not a route guard.
+  const shouldHidePage = !hydrated || prepCompleted;
 
   useEffect(() => {
     if (!hydrated) return;
