@@ -60,6 +60,20 @@ Why both: the cookie only proves "this step was completed at some point" — it 
 
 ---
 
+## Data persistence
+
+No database — state is held in Zustand, persisted to `localStorage` (one store per phase: `mission-config`, `prep-state`, `activity-state`). Writes are timed to match how "permanent" each thing is: job selections and tab-completion clicks commit immediately, since losing them mid-flow would be a real regression; in-progress chat typing stays local React state until the message is actually sent, so we're not writing to storage on every keystroke; the 10-minute activity timer persists only its start *timestamp*, not a ticking counter, so the remaining time is always recomputed from `Date.now()` and a refresh can't grant free time.
+
+## Client vs. Server Components
+
+Every `app/*/page.tsx` is a plain Server Component that only composes a `<Container>` and hands off to one feature-level Client Component (`JobConfig`, `PrepView`, `ActivityView`, `AnalysisView`). `"use client"` starts exactly at the boundary where something browser-only is needed — `getUserMedia`/`MediaRecorder`, `window.speechSynthesis`, `setInterval`-based timers, or a Zustand store read. Static markup (safety instructions copy, the navbar shell, page scaffolding) stays server-rendered and never ships as client JS it doesn't need.
+
+## Why no separate backend
+
+Next.js's own Route Handler already covers the one server-side responsibility this app has — proxying/streaming the Groq chat completion — so a second codebase/deployment would add operational overhead (hosting, CORS, auth between services) for a single endpoint, with no real benefit at this scope. The one thing that *would* justify a separate service in production — persistent WebSocket connections for real-time chat, or offloading heavy video-blob processing so it doesn't tie up the Next.js server — isn't needed here since the chat is request/response streaming (not a long-lived socket) and the video is never actually uploaded (see below).
+
+---
+
 ## Why the recorded video isn't persisted
 
 There's no database and no cloud storage wired up (e.g. Cloudinary, S3) — this is a proof-of-concept, and adding one wasn't necessary to demonstrate the required MediaRecorder integration. The recorded Blob is kept in-memory in the Recording tab's component state and previewed via a local Object URL; it's never written to `localStorage` (Blobs don't serialize into JSON storage anyway) and never uploaded anywhere.
