@@ -17,18 +17,70 @@ GROQ_API_KEY=your_key_here
 
 ---
 
-## Folder structure — feature-based
+## Folder structure - (Feature Based)
 
 ```
-app/(workflow)/        # thin Server Component pages (job-config, prep, activity, analysis)
-app/api/chat/          # Route Handler — streams the AI response
-features/
-  job-config/  prep/  activity/  analysis/
-    components/ hooks/ store/ actions/ constants/
-  activity/tabs/{assessment,recording,qa}/   # each tab is its own self-contained slice
-ui/        # dumb, reusable primitives (Button, Card, Timer...)
-lib/       # generic, framework-agnostic hooks/utils (useTimer, cn())
-proxy.ts   # middleware — route guards
+remote-support-portal/
+├── proxy.ts                         # middleware — server-side route guards (reads httpOnly cookies)
+│
+├── app/
+│   ├── layout.tsx                   # root layout, fonts, metadata, <Navbar>
+│   ├── loading.tsx                  # global route-transition skeleton
+│   ├── error.tsx                    # global error boundary
+│   ├── globals.css
+│   │
+│   ├── (workflow)/                  # thin Server Component pages
+│   │   ├── page.tsx                 #   Phase 1 — Job Configuration
+│   │   ├── prep/page.tsx            #   Phase 2 — Pre-Deployment Briefing
+│   │   ├── activity/page.tsx        #   Phase 3 — Support Workspace
+│   │   └── analysis/page.tsx        #   Placeholder performance screen
+│   │
+│   └── api/
+│       └── chat/route.ts            # Route Handler — streams Groq LLM response
+│
+├── features/                        # one folder per phase — components/hooks/store/actions live together
+│   ├── job-config/
+│   │   ├── components/              # SelectionGrid, SelectionCard, StartMissionButton, PageHeading
+│   │   ├── store/job-config.store.ts       # Zustand + localStorage (equipment, severity)
+│   │   ├── actions/confirm-job-config.ts   # Server Action — validates + mints httpOnly cookie
+│   │   ├── hooks/useMissionHydration.ts
+│   │   ├── schemas/job-config.schema.ts    # Zod validation
+│   │   └── types/job-config.types.ts
+│   │
+│   ├── prep/
+│   │   ├── components/              # CountdownSection, CameraSection, JobSummary, SafetyInstructions
+│   │   ├── store/prep.store.ts
+│   │   ├── actions/confirm-prep.ts         # Server Action — mints httpOnly cookie on timer-end/skip
+│   │   ├── hooks/useCameraPermission.ts    # getUserMedia + graceful denial handling
+│   │   └── constants/safety.ts
+│   │
+│   ├── activity/
+│   │   ├── components/              # ActivityView, TabNavigation, ActivityTimer, MessageBubble, TypingIndicator
+│   │   ├── store/activity.store.ts  # tracks active/locked tab state
+│   │   └── tabs/                    # each tab is a self-contained, lazy-loaded slice
+│   │       ├── assessment/          #   Tab 1 — Scoping chat
+│   │       │   ├── components/AssessmentTab.tsx
+│   │       │   ├── hooks/useAIChat.ts       # streams Groq, falls back to scripted mock
+│   │       │   └── constants/assessment-chat.ts
+│   │       ├── recording/           #   Tab 2 — Repair Documentation
+│   │       │   ├── components/RecordingTab.tsx
+│   │       │   └── hooks/useMediaRecorder.ts
+│   │       └── qa/                  #   Tab 3 — Quality Assurance chat
+│   │           ├── components/QATab.tsx
+│   │           └── constants/qa-chat.ts
+│   │
+│   └── analysis/
+│       └── components/AnalysisView.tsx
+│
+├── ui/                               # dumb, reusable primitives — no business logic
+│   ├── Button.tsx  Card.tsx  Container.tsx  Navbar.tsx  Section.tsx  RadialTimer.tsx
+│
+└── lib/                              # framework-agnostic helpers, shared by any feature
+    ├── utils.ts                      # cn()
+    └── hooks/
+        ├── useTimer.ts
+        └── useHydration.ts
+```
 ```
 
 Each phase of the mission owns its own components/hooks/store, instead of one global `components/` and `hooks/` folder. This keeps unrelated logic (e.g. the camera-permission hook vs. the chat hook) from living side by side just because they're "both hooks," and it maps 1:1 onto the product spec — "fix the prep countdown" → `features/prep/`, no grepping required. `ui/` and `lib/` are the only exception: code that's genuinely feature-agnostic (a `Button`, `useTimer`) lives there instead of being duplicated per feature.
