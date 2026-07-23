@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Play, Square, Video } from "lucide-react";
 import { useActivityStore } from "@/features/activity/store/activity.store";
 import { useMediaRecorder } from "../hooks/useMediaRecorder";
@@ -9,8 +10,21 @@ import { Card } from "@/ui/Card";
 export function RecordingTab() {
   const completeRecording = useActivityStore((s) => s.completeRecording);
 
-  const { state, start, stop, blobUrl, error, reset, elapsedMs } =
+  const { state, start, stop, blobUrl, stream, error, reset, elapsedMs } =
     useMediaRecorder();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+  if (videoRef.current) {
+    videoRef.current.srcObject = stream;
+  }
+  return () => {
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+}, [stream]);
 
   const formatElapsed = (ms: number) => {
     const totalSec = Math.floor(ms / 1000);
@@ -22,8 +36,18 @@ export function RecordingTab() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 bg-background p-8">
       <Card className="flex aspect-video w-full max-w-lg items-center justify-center overflow-hidden p-0">
-        {blobUrl ? (
+        {state === "recording" ? (
           <video
+            key="live"
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+        ) : blobUrl ? (
+          <video
+            key="playview"
             src={blobUrl}
             controls
             className="h-full w-full object-contain"

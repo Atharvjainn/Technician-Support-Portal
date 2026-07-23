@@ -13,6 +13,7 @@ interface UseMediaRecorderReturn {
   error: string | null;
   reset: () => void;
   elapsedMs: number;
+  stream: MediaStream | null;
 }
 
 export function useMediaRecorder(): UseMediaRecorderReturn {
@@ -21,6 +22,7 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -40,6 +42,7 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    setStream(null);
   }, []);
 
   const start = useCallback(async () => {
@@ -50,6 +53,7 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
       });
 
       streamRef.current = stream;
+      setStream(stream);
       chunksRef.current = [];
       setError(null);
 
@@ -124,5 +128,6 @@ export function useMediaRecorder(): UseMediaRecorderReturn {
     error,
     reset,
     elapsedMs,
+    stream,
   };
 }

@@ -24,6 +24,7 @@ export function useCameraPermission(): UseCameraPermissionReturn {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
+        audio : true
       });
       revoke();
       streamRef.current = stream;
