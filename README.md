@@ -17,7 +17,7 @@ GROQ_API_KEY=your_key_here
 
 ---
 
-## Folder structure - (Feature Based)
+## Folder structure
 
 ```
 remote-support-portal/
@@ -80,7 +80,6 @@ remote-support-portal/
     └── hooks/
         ├── useTimer.ts
         └── useHydration.ts
-```
 ```
 
 Each phase of the mission owns its own components/hooks/store, instead of one global `components/` and `hooks/` folder. This keeps unrelated logic (e.g. the camera-permission hook vs. the chat hook) from living side by side just because they're "both hooks," and it maps 1:1 onto the product spec — "fix the prep countdown" → `features/prep/`, no grepping required. `ui/` and `lib/` are the only exception: code that's genuinely feature-agnostic (a `Button`, `useTimer`) lives there instead of being duplicated per feature.
