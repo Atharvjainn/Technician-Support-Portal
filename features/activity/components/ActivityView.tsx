@@ -2,13 +2,14 @@
 
 import { useEffect, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import { useMissionStore } from "@/features/job-config/store/job-config.store";
+import { useMissionHydration } from "@/features/job-config/hooks/useMissionHydration";
 import { usePrepStore } from "@/features/prep/store/prep.store";
 import { useHydration } from "@/lib/hooks/useHydration";
 import { useActivityStore } from "../store/activity.store";
 import { ActivityTimer } from "./ActivityTimer";
 import { TabNavigation } from "./TabNavigation";
 import { TabSkeleton } from "./TabSkeleton";
-
 
 const AssessmentTab = lazy(() =>
   import("../tabs/assessment/components/AssessmentTab").then((m) => ({
@@ -31,10 +32,13 @@ const QATab = lazy(() =>
 export function ActivityView() {
   const router = useRouter();
 
+  const missionHydrated = useMissionHydration();
   const activityHydrated = useHydration(useActivityStore.persist);
   const prepHydrated = useHydration(usePrepStore.persist);
-  const hydrated = activityHydrated && prepHydrated;
+  const hydrated = missionHydrated && activityHydrated && prepHydrated;
 
+  const equipment = useMissionStore((s) => s.equipment);
+  const severity = useMissionStore((s) => s.severity);
   const prepCompleted = usePrepStore((s) => s.completed);
   const activeTab = useActivityStore((s) => s.activeTab);
   const timerStartedAt = useActivityStore((s) => s.timerStartedAt);
@@ -42,19 +46,46 @@ export function ActivityView() {
   const startTimer = useActivityStore((s) => s.startTimer);
   const tabStates = useActivityStore((s) => s.tabStates);
 
+  // Same reasoning as PrepView: the proxy only checked cookies on the
+  // way in. If job config or prep state gets wiped while this page is
+  // already mounted (or the cookie is stale relative to localStorage),
+  // nothing server-side catches it — this has to. And it's not just a
+  // redirect: any activity session tied to a now-missing prerequisite
+  // is invalid, so its stale timerStartedAt gets cleared too. Otherwise
+  // a later, legitimate return to /activity would resume a timer that
+  // started during the abandoned session instead of a fresh one.
   useEffect(() => {
     if (!hydrated) return;
-    if (!prepCompleted) {
-      router.replace("/prep");
+    if (!equipment || !severity) {
+      useActivityStore.getState().reset();
+      usePrepStore.getState().reset();
+      router.replace("/");
     }
-  }, [hydrated, prepCompleted, router]);
+  }, [hydrated, equipment, severity, router]);
 
   useEffect(() => {
     if (!hydrated) return;
+    if (equipment && severity && !prepCompleted) {
+      useActivityStore.getState().reset();
+      router.replace("/prep");
+    }
+  }, [hydrated, equipment, severity, prepCompleted, router]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!equipment || !severity || !prepCompleted) return;
     if (!timerStartedAt && !timerExpired) {
       startTimer();
     }
-  }, [hydrated, timerStartedAt, timerExpired, startTimer]);
+  }, [
+    hydrated,
+    equipment,
+    severity,
+    prepCompleted,
+    timerStartedAt,
+    timerExpired,
+    startTimer,
+  ]);
 
   useEffect(() => {
     if (timerExpired) {
@@ -73,7 +104,8 @@ export function ActivityView() {
     }
   }, [hydrated, activeTab, tabStates, router]);
 
-  if (!hydrated || !prepCompleted || timerExpired) return null;
+  if (!hydrated || !equipment || !severity || !prepCompleted || timerExpired)
+    return null;
 
   return (
     <section className="flex h-[calc(100vh-4rem)] flex-col bg-background">

@@ -10,6 +10,7 @@ import { JobSummary } from "./JobSummary";
 import { SafetyInstructions } from "./SafetyInstructions";
 import { CameraSection } from "./CameraSection";
 import { CountdownSection } from "./CountdownSection";
+import { useMissionStore } from "@/features/job-config/store/job-config.store";
 
 export function PrepView() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export function PrepView() {
   const setPrepCompleted = usePrepStore((s) => s.setCompleted);
   const countdownStartedAt = usePrepStore((s) => s.countdownStartedAt);
   const startCountdown = usePrepStore((s) => s.startCountdown);
+  const equipment = useMissionStore((s) => s.equipment);
+  const severity = useMissionStore((s) => s.severity);
 
   const { state: cameraState, request } = useCameraPermission();
 
@@ -44,14 +47,16 @@ export function PrepView() {
 
   const { secondsLeft, isFinished } = useTimer(30, countdownStartedAt);
 
-  // No "!equipment || !severity -> redirect" check here anymore.
-  // middleware.ts blocks any request to /prep before it's ever rendered
-  // if a job hasn't been configured yet, so this component can assume
-  // Phase 1 was already completed by the time it mounts. The
-  // prepCompleted redirect below is a separate, non-security "you're
-  // already done, move along" convenience — kept client-side since it's
-  // just forward flow, not a route guard.
-  const shouldHidePage = !hydrated || prepCompleted;
+  // we need to have extra client guard so that if the user deletes the job config intentionally, we don't let them proceed to the prep page. This is because the prep page relies on the job config data to render correctly.
+  const shouldHidePage = !hydrated || prepCompleted || !severity || !equipment;
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!equipment || !severity) {
+      usePrepStore.getState().reset();
+      router.replace("/");
+    }
+  }, [hydrated, equipment, severity, router]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -65,10 +70,11 @@ export function PrepView() {
   // resume from.
   useEffect(() => {
     if (!hydrated) return;
+    if (!equipment || !severity) return;
     if (countdownStartedAt === null) {
       startCountdown();
     }
-  }, [hydrated, countdownStartedAt, startCountdown]);
+  }, [hydrated, equipment, severity, countdownStartedAt, startCountdown]);
 
   const canSkip = secondsLeft <= 25 && !skipClicked && !isFinished;
   const canProceed =
