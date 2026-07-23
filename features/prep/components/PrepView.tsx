@@ -83,22 +83,39 @@ export function PrepView() {
 
  const [navError, setNavError] = useState<string | null>(null);
 
-const navigateToActivity = useCallback(() => {
+const [isNavigating, setIsNavigating] = useState(false);
+
+const navigateToActivity = useCallback(async () => {
   if (navigatingRef.current) return;
 
   navigatingRef.current = true;
+  setIsNavigating(true);
   setNavError(null);
 
-  confirmPrepCompleted().then((result) => {
+  try {
+    const result = await confirmPrepCompleted();
+
     if (!result.success) {
       navigatingRef.current = false;
+      setIsNavigating(false);
       setNavError(result.error ?? "Could not proceed. Please try again.");
       return;
     }
 
     setPrepCompleted(true);
+
+    // Optional small delay so the loader is visible
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     router.push("/activity");
-  });
+  } catch (err) {
+    console.error(err);
+
+    navigatingRef.current = false;
+    setIsNavigating(false);
+
+    setNavError("Something went wrong. Please try again.");
+  }
 }, [router, setPrepCompleted]);
 
   useEffect(() => {
