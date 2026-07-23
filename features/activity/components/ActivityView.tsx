@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { usePrepStore } from "@/features/prep/store/prep.store";
 import { useHydration } from "@/lib/hooks/useHydration";
 import { useActivityStore } from "../store/activity.store";
@@ -10,25 +9,23 @@ import { ActivityTimer } from "./ActivityTimer";
 import { TabNavigation } from "./TabNavigation";
 import { TabSkeleton } from "./TabSkeleton";
 
-const AssessmentTab = dynamic(
-  () =>
-    import("../tabs/assessment/components/AssessmentTab").then(
-      (m) => m.AssessmentTab
-    ),
-  { loading: () => <TabSkeleton />, ssr: false }
+
+const AssessmentTab = lazy(() =>
+  import("../tabs/assessment/components/AssessmentTab").then((m) => ({
+    default: m.AssessmentTab,
+  }))
 );
 
-const RecordingTab = dynamic(
-  () =>
-    import("../tabs/recording/components/RecordingTab").then(
-      (m) => m.RecordingTab
-    ),
-  { loading: () => <TabSkeleton />, ssr: false }
+const RecordingTab = lazy(() =>
+  import("../tabs/recording/components/RecordingTab").then((m) => ({
+    default: m.RecordingTab,
+  }))
 );
 
-const QATab = dynamic(
-  () => import("../tabs/qa/components/QATab").then((m) => m.QATab),
-  { loading: () => <TabSkeleton />, ssr: false }
+const QATab = lazy(() =>
+  import("../tabs/qa/components/QATab").then((m) => ({
+    default: m.QATab,
+  }))
 );
 
 export function ActivityView() {
@@ -85,9 +82,11 @@ export function ActivityView() {
       <TabNavigation />
 
       <div className="flex-1 overflow-hidden">
-        {activeTab === "assessment" && <AssessmentTab />}
-        {activeTab === "recording" && <RecordingTab />}
-        {activeTab === "qa" && <QATab />}
+        <Suspense fallback={<TabSkeleton />}>
+          {activeTab === "assessment" && <AssessmentTab />}
+          {activeTab === "recording" && <RecordingTab />}
+          {activeTab === "qa" && <QATab />}
+        </Suspense>
       </div>
     </section>
   );
